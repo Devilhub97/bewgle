@@ -10,17 +10,28 @@ const randomNumber = (max, min) => {
 // for finding paticular http method request
 
 const methodStats = async(method, fromDate, toDate) => {
-    const data = await processSchema.aggregate([{
-        $match: {
-            'method': method,
-            'date': {
-                $gte: new Date(new Date(fromDate).setHours(00, 00, 00)),
-                $lte: new Date(new Date(toDate).setHours(23, 59, 59))
-            }
-        },
-    }, {
-        $group: { _id: null, totalRequest: { $sum: 1 }, totalResponsetIME: { $sum: '$duration' }, averageResponseTime: { $avg: '$duration' } }
-    }])
+    let data = ''
+    if (!fromDate || !toDate) {
+        data = await processSchema.aggregate([{
+            $match: {
+                'method': method
+            },
+        }, {
+            $group: { _id: null, totalRequest: { $sum: 1 }, totalResponseTime: { $sum: '$duration' }, averageResponseTime: { $avg: '$duration' } }
+        }])
+    } else {
+        data = await processSchema.aggregate([{
+            $match: {
+                'method': method,
+                'date': {
+                    $gte: new Date(new Date(fromDate).setHours(00, 00, 00)),
+                    $lte: new Date(new Date(toDate).setHours(23, 59, 59))
+                }
+            },
+        }, {
+            $group: { _id: null, totalRequest: { $sum: 1 }, totalResponsetIME: { $sum: '$duration' }, averageResponseTime: { $avg: '$duration' } }
+        }])
+    }
     return data
 }
 
